@@ -163,15 +163,15 @@ class Contributor(Sender, Receiver):
         zipped_ls.sort(key=lambda x: x[1])
         return [a for (a, b) in zipped_ls]
     
-    def __init__(self,securityProperty, backend, bi_dS, bi_dC, Kkey):
-        if securityProperty == None:
+    def __init__(self,security_property, backend, bi_dS, bi_dC, Kkey):
+        if security_property == None:
             self.bi_dS = bi_dS
             self.bi_dC = bi_dC
             self.Kkey = Kkey
             self.backend = backend
         
         else:
-            self.securityProperty = securityProperty
+            self.security_property = security_property
             self.backend = backend
             n = 24
             """NEW DEFINITION
@@ -202,8 +202,8 @@ class Contributor(Sender, Receiver):
             C = sentH.make_send_circuits()
             
             """now for the decoys"""
-            len_dS = int(len(S_) * securityProperty)
-            len_dC = int(len(C) * securityProperty)
+            len_dS = int(len(S_) * security_property)
+            len_dC = int(len(C) * security_property)
         
             self.bi_dS = Contributor.cbits(len_dS)
             self.ba_dS = Contributor.cbits(len_dS)
@@ -255,13 +255,23 @@ class QKAuser():
     seed = ''
     bS = ''
     bH = ''
-    def __init__(self):
+
+    def __init__(self, name, security_property):
         self.backend = Aer.get_backend('qasm_simulator')
+        self.name = name
+        self.security_property = security_property
     
     def get_receiveA_data(self):
-        securityProperty = 0.5
-        self.strownKkey, self.strbi_dS, self.strbi_dC, strS__, strC_, pos_dS, pos_dC, ba_dS, ba_dC, self.seed, self.bS, self.bH = GiveData(securityProperty, self.backend)
+        self.strownKkey, self.strbi_dS, self.strbi_dC, strS__, strC_, pos_dS, pos_dC, ba_dS, ba_dC, self.seed, self.bS, self.bH = GiveData(self.security_property, self.backend)
         ls = [strS__, strC_, pos_dS, pos_dC, ba_dS, ba_dC]
+        print('------------------------------------------------------------------------------------')
+        print(self.name + ' created key, 2 lists which are derivations of key, decoys, and respective bases')
+        print('key: ' + self.strownKkey)
+        print('decoys for list: ' + self.strbi_dS)
+        print('decoys for hashed list: ' + self.strbi_dC)
+        print('To conclude this step, the decoys are put into their respective lists'
+              ' and the lists are encrypted as explained in the report')
+        print('------------------------------------------------------------------------------------')
         return ls
    
     def receiveA(self, ls):
@@ -276,20 +286,26 @@ class QKAuser():
         return ls
     
     def receiveB(self, ls):
+        print('------------------------------------------------------------------------------------')
+        print(self.name + ' has received the required data and is making their new, shared key')
+        print('------------------------------------------------------------------------------------')
         return makeKey(self.strownKkey, self.S_, self.C, ls[0], ls[1], ls[2], self.backend)
   
     def securityCheck1(self, ls):
+        print('------------------------------------------------------------------------------------')
+        print(self.name + ' is checking to see if eavesdropping occurred')
         securityCheck(ls[0], self.strbi_dS)
         securityCheck(ls[1], self.strbi_dC)
+        print('------------------------------------------------------------------------------------')
 '''    
 def mainTest():
-    securityProperty = 0.5
+    security_property = 0.5
     backend = Aer.get_backend('qasm_simulator')
     #GiveData
     #Alice
-    strownKkey, strbi_dS, strbi_dC, strS__, strC_, pos_dS, pos_dC, ba_dS, ba_dC, seed, bS, bH = GiveData(securityProperty, backend)
+    strownKkey, strbi_dS, strbi_dC, strS__, strC_, pos_dS, pos_dC, ba_dS, ba_dC, seed, bS, bH = GiveData(security_property, backend)
     #Bob
-    strownKkey2, strbi_dS2, strbi_dC2, strS__2, strC_2, pos_dS2, pos_dC2, ba_dS2, ba_dC2, seed2, bS2, bH2 = GiveData(securityProperty, backend)
+    strownKkey2, strbi_dS2, strbi_dC2, strS__2, strC_2, pos_dS2, pos_dC2, ba_dS2, ba_dC2, seed2, bS2, bH2 = GiveData(security_property, backend)
     ---------------------
     #Intercepted(strS__, strC_, backend)
     
@@ -309,9 +325,9 @@ def mainTest():
 '''
 
 
-def GiveData(strsecurityProperty, backend):
-    securityProperty = float(strsecurityProperty)
-    user = Contributor(securityProperty, backend, None, None, None)
+def GiveData(strsecurity_property, backend):
+    security_property = float(strsecurity_property)
+    user = Contributor(security_property, backend, None, None, None)
     #Send the bits across the channel
     strS__ = []
     strC_ = []   
@@ -453,13 +469,13 @@ def securityCheck2(H_,H):
 
 def mainTest():
     '''
-    securityProperty = 0.5
+    security_property = 0.5
     backend = Aer.get_backend('qasm_simulator')
     #GiveData
     #Alice
-    strownKkey, strbi_dS, strbi_dC, strS__, strC_, pos_dS, pos_dC, ba_dS, ba_dC, seed, bS, bH = GiveData(securityProperty, backend)
+    strownKkey, strbi_dS, strbi_dC, strS__, strC_, pos_dS, pos_dC, ba_dS, ba_dC, seed, bS, bH = GiveData(security_property, backend)
     #Bob
-    strownKkey2, strbi_dS2, strbi_dC2, strS__2, strC_2, pos_dS2, pos_dC2, ba_dS2, ba_dC2, seed2, bS2, bH2 = GiveData(securityProperty, backend)
+    strownKkey2, strbi_dS2, strbi_dC2, strS__2, strC_2, pos_dS2, pos_dC2, ba_dS2, ba_dC2, seed2, bS2, bH2 = GiveData(security_property, backend)
     
     #Intercepted(strS__, strC_, backend)
     
@@ -479,8 +495,8 @@ def mainTest():
     
     
     def get_receiveA_data(self):
-        securityProperty = 0.5
-        self.strownKkey, self.strbi_dS, self.strbi_dC, strS__, strC_, pos_dS, pos_dC, ba_dS, ba_dC, self.seed, self.bS, self.bH = GiveData(securityProperty, self.backend)
+        security_property = 0.5
+        self.strownKkey, self.strbi_dS, self.strbi_dC, strS__, strC_, pos_dS, pos_dC, ba_dS, ba_dC, self.seed, self.bS, self.bH = GiveData(security_property, self.backend)
         return strS__, strC_, pos_dS, pos_dC, ba_dS, ba_dC
    
     def receiveA(self, strS__2, strC_2, pos_dS2, pos_dC2, ba_dS2, ba_dC2):
@@ -514,8 +530,8 @@ def main():
     while True:
         inArgs = input().split('#')
         if len(inArgs) == 1:  # GiveData
-            securityProperty = inArgs[0]
-            Kkey, bi_dS, bi_dC, S__, C_, pos_dS, pos_dC, ba_dS, ba_dC, seed, bS, bH = GiveData(securityProperty, backend)
+            security_property = inArgs[0]
+            Kkey, bi_dS, bi_dC, S__, C_, pos_dS, pos_dC, ba_dS, ba_dC, seed, bS, bH = GiveData(security_property, backend)
             print(Kkey)
             print(bi_dS)
             print(bi_dC)
